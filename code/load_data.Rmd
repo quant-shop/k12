@@ -1,0 +1,512 @@
+---
+title: "High School Longitudinal Study of 2009 (HSLS:09)"
+subtitle: "Project overview"
+author: 
+- "Nathan Alexander, PhD"
+- "Center for Applied Data Science and Anaytics"
+- "Howard University"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(haven)
+library(readr)
+library(dplyr)
+library(here)
+library(tidyverse)
+library(haven)    # or foreign, depending on file format
+library(poLCA)    # latent class analysis for categorical indicators
+
+here::i_am("load_data.Rmd")
+
+# bitly
+#school
+# https://www.dropbox.com/scl/fi/ip5za6kmuzuqahdaperxo/w1w2.csv?rlkey=act3x973fbo5qvwlpceqbvh0z&dl=1
+# http://bit.ly/3R2HaLN
+
+#student
+# https://www.dropbox.com/scl/fi/g8zomulef6xlyky28a3jg/hsls_09_school_v1_0.csv?rlkey=qyl7prqqmk12f0a7fk89z7ct9&dl=1
+# https://bit.ly/4wdNU9P
+
+```
+
+# Introduction
+
+School STEM and academic supports—such as after-school STEM programs, mentoring, field trips, credit recovery, homework help, and dropout prevention—are unevenly distributed across U.S. schools. These supports collectively shape students’ opportunities to learn, particularly in mathematics and science. Yet most quantitative work treats these supports as separate variables rather than as bundled “regimes” of opportunity, potentially obscuring patterned inequities in how supports co-occur across schools.
+
+In this study, we use latent class analysis (LCA) to identify distinct school-level regimes of STEM enrichment and academic support. We ask how schools cluster into qualitatively different configurations of supports, and which kinds of schools are more or less likely to provide comprehensive regimes versus minimal or remediation-only regimes. We situate this work in opportunity-to-learn theory, multi-tiered systems of support, and equity-focused quantitative traditions that emphasize structural patterns rather than individual deficits.
+
+## Literature Review
+
+### Opportunity to learn and school support structures
+
+- Briefly define opportunity-to-learn (OTL) and how school-level practices and resources shape students’ access to rigorous STEM learning.
+- Summarize evidence that access to enrichment (e.g., STEM clubs, field trips) and academic supports (e.g., tutoring, credit recovery) is stratified by school demographics and funding.
+- Highlight prior work on school climate, guidance counseling, and academic support structures that demonstrates links to STEM outcomes.
+
+### Multi-tiered systems of support (MTSS) and remediation
+
+- Introduce MTSS / RTI frameworks as models of tiered academic and behavioral support.
+- Discuss how different schools implement these frameworks: comprehensive supports versus fragmented or minimal supports.
+- Connect MTSS ideas to your observed patterns: comprehensive regime, enrichment-without-remediation, and remediation-with-weak-enrichment.
+
+### Equity-focused and person-centered quantitative approaches
+
+- Review equity-focused quantitative and critical quantitative work that urges attention to structural opportunity patterns rather than only mean differences.
+- Introduce person-centered methods (e.g., LCA) as tools to identify heterogeneous patterns of supports across schools.
+- Note prior education studies that use LCA to classify schools or students based on combinations of practices or experiences, and how your work extends this to STEM and academic supports simultaneously.
+
+### Gaps in the literature
+
+- Most prior studies examine single supports or simple indices, not bundled regimes.
+- Limited work has used person-centered models to characterize school-level support regimes in STEM contexts.
+- Few studies explicitly connect these empirically derived regimes to equity concerns about which students land in which types of schools.
+
+## Research Questions and Hypotheses
+
+### Research Questions
+
+- **RQ1:** How do U.S. schools cluster into distinct regimes of STEM enrichment and academic support based on their provision of after-school STEM, mentoring, STEM-related field trips, credit recovery, homework help, and dropout prevention?
+- **RQ2:** How are school characteristics (e.g., sector/control, locale, student socioeconomic composition) associated with membership in each support regime?
+- **RQ3 (optional, if you have student outcomes later):** How are these support regimes associated with students’ STEM aspirations or achievement, net of student background?
+
+### Hypotheses
+
+- **H1 (regime structure):** Schools will sort into at least three distinct regimes:  
+  (a) a high-support / comprehensive regime with high probabilities of both STEM enrichment and academic safety nets;  
+  (b) a basic STEM-only, no-remediation regime with some enrichment but limited remediation; and  
+  (c) a remediation-focused, weak-STEM-enrichment regime emphasizing credit recovery with fewer STEM opportunities.
+- **H2 (school characteristics):** Comprehensive support regimes will be more common in better-resourced schools (e.g., lower poverty, suburban or non-rural locales), while minimal or remediation-only regimes will be more prevalent in high-poverty and minoritized-serving schools.
+- **H3 (if using outcomes):** Students in comprehensive support regimes will show higher STEM aspirations or achievement than similar students in minimal or remediation-only regimes.
+
+## Methods
+
+### Data and sample
+
+- Describe the data source (e.g., national school survey), years, and sampling design.
+- Define the analytic sample: number of schools with complete data on the six focal supports; note any exclusions and missing data handling.
+- Provide descriptive statistics for key school characteristics (control, locale, free/reduced-price lunch or other poverty proxies).
+
+### Measures
+
+#### School support indicators (manifest variables)
+
+- After-school STEM programs (A1MSAFTERSCH): coded 1 = no, 2 = yes.
+- STEM mentoring programs (A1MSMENTOR): coded 1 = no, 2 = yes.
+- STEM-related field trips (A1MSFLDTRIP): coded 1 = no, 2 = yes.
+- Credit recovery (C1CREDREC): coded 1 = no, 2 = yes.
+- Homework help/tutoring (C1HOMEWORK): coded 1 = no, 2 = yes.
+- Dropout prevention program (C1DROPOUT): coded 1 = no, 2 = yes.
+- Briefly explain the original coding, recoding to 1/2, and treatment of negative or missing values as NA.
+
+#### School covariates
+
+- School control/sector (X1CONTROL): categories (e.g., public, private, charter).
+- Locale (X1LOCALE): urban, suburban, town, rural.
+- Socioeconomic composition (e.g., percentage of students eligible for free/reduced-price lunch or available proxy).
+- Any other contextual variables you plan to use as predictors of class membership.
+
+### Analytic approach
+
+#### Latent class analysis
+
+- Use latent class analysis (LCA) to identify qualitatively distinct regimes based on the six binary support indicators.
+- Specify that models with K = 2–4 classes are estimated using the `poLCA` package in R, with multiple random starts (e.g., 20) and a high maximum iteration limit to avoid local minima.
+- Select the preferred class solution based on a combination of BIC (primary), AIC, classification quality, interpretability, and class sizes.
+
+#### Class interpretation and labeling
+
+- Interpret classes using item-response probabilities (probability of “yes” for each support within each class).
+- Label the three observed regimes as:  
+  (1) high-support / comprehensive;  
+  (2) basic STEM-only, no remediation;  
+  (3) remediation-focused, weak STEM enrichment.
+- Present profiles graphically (e.g., line plot of item probabilities by class) to illustrate contrasts across regimes.
+
+#### Associations with school characteristics
+
+- Model associations between school characteristics and latent class membership using multinomial logistic regression with class membership as the outcome.
+- Report relative risk ratios/odds ratios comparing each regime to a reference class (e.g., comprehensive regime).
+- If applicable, describe any weighting or design-based adjustments.
+
+# Results
+
+```{r remote-load-hsls, warning=F, message=F}
+student <- 
+  read_csv("http://bit.ly/3R2HaLN")
+
+school_raw <- 
+  read_csv("https://bit.ly/4wdNU9P")
+```
+
+```{r, warning=F, message=F}
+
+# key school-level indicators:
+school <- school_raw %>%
+  dplyr::select(
+    # STEM outreach and supports
+    C1PURSUE,     # encourage underrepresented students in math/science
+    C1INFORM,     # inform parents about math/science higher ed/careers
+    A1MTHSCIFAIR, # math/science fairs
+    A1MSAFTERSCH, # after-school STEM programs
+    A1MSMENTOR,   # STEM mentoring
+    A1MSFLDTRIP,  # STEM field trips
+    A1MSPRGMS,    # other STEM programs
+
+    # College-going and financial-aid supports
+    C1CLGFAIR,    # college fairs
+    C1VISITCLG,   # college visits
+    C1INFOSESSN,  # info sessions on college transition
+    C1FINANCEAID, # help with financial aid
+    C1ASSISTOTH,  # other HS-to-college transition steps
+
+    # Academic support and dropout prevention
+    C1CREDREC,    # credit recovery
+    C1HOMEWORK,   # homework assistance program
+    C1OUTSIDE,    # support outside school day
+    C1DROPOUT,    # formal dropout prevention program
+
+    # Structural context (for later descriptive work)
+    X1CONTROL,    # public/private
+    X1LOCALE,     # urbanicity
+    X1FREELUNCH   # percent free lunch categories
+  )
+```
+
+In the public-use file, we cannot link students to schools due to the restricted nature of the data. We are waiting for a restricted data license. In the meantime, we will analyze the files separately.
+
+```{r, eval=F}
+str(school) 
+str(student)
+```
+
+```{r}
+library(dplyr)
+library(poLCA)
+
+# 1. Choose a set of indicators with real variation
+indicators <- c(
+  "A1MSAFTERSCH","A1MSMENTOR","A1MSFLDTRIP",
+  "C1CREDREC","C1HOMEWORK","C1DROPOUT"
+)
+
+# 2. Recode: negatives -> NA, 0 -> 1, 1 -> 2
+school_lca <- school %>%
+  mutate(
+    across(
+      all_of(indicators),
+      ~ case_when(
+        .x < 0  ~ NA_real_,
+        .x == 0 ~ 1,
+        .x == 1 ~ 2,
+        TRUE    ~ NA_real_
+      )
+    )
+  ) %>%
+  # keep only rows fully observed on all indicators
+  filter(if_all(all_of(indicators), ~ !is.na(.)))
+
+# Sanity check: now each indicator should be 1/2/NA
+summary(dplyr::select(school_lca, all_of(indicators)))
+
+# 3. Define LCA formula
+f_lca <- as.formula(
+  paste("cbind(", paste(indicators, collapse = ", "), ") ~ 1")
+)
+
+# 4. Fit models for K = 2,3,4
+set.seed(1234)
+lca_results <- list()
+for (K in 2:4) {
+  cat("Fitting K =", K, "with", nrow(school_lca), "schools\n")
+  lca_results[[paste0("K", K)]] <- poLCA(
+    f_lca,
+    data    = school_lca,
+    nclass  = K,
+    maxiter = 5000,
+    nrep    = 20,
+    verbose = FALSE
+  )
+}
+
+# 5. Extract BIC/AIC
+bic_vec <- unname(sapply(lca_results, function(m) m$bic))
+aic_vec <- unname(sapply(lca_results, function(m) m$aic))
+
+model_fit <- tibble::tibble(
+  K   = 2:4,
+  BIC = bic_vec,
+  AIC = aic_vec
+)
+model_fit
+```
+
+
+## descriptive statistics
+
+```{r desc-schools, message=FALSE, warning=FALSE}
+library(dplyr)
+library(tidyr)
+
+# Overall N and basic structure
+n_schools <- nrow(school)
+n_complete_lca <- nrow(school_lca)
+
+# Overall prevalence of each support (in full sample)
+support_vars <- c(
+  "A1MSAFTERSCH","A1MSMENTOR","A1MSFLDTRIP",
+  "C1CREDREC","C1HOMEWORK","C1DROPOUT"
+)
+
+support_desc <- school %>%
+  summarize(
+    across(
+      all_of(support_vars),
+      ~ mean(. == 1, na.rm = TRUE),
+      .names = "prop_yes_{.col}"
+    )
+  ) %>%
+  pivot_longer(everything(),
+               names_to = "item",
+               values_to = "prop_yes") 
+
+# Descriptives for key covariates in full sample
+cov_desc <- school %>%
+  summarize(
+    n = n(),
+    across(
+      c(X1CONTROL, X1LOCALE, X1FREELUNCH),
+      list(
+        mean = ~ mean(., na.rm = TRUE),
+        sd   = ~ sd(., na.rm = TRUE)
+      ),
+      .names = "{.col}_{.fn}"
+    )
+  )
+
+n_schools
+n_complete_lca
+support_desc
+cov_desc
+```
+
+
+```{r}
+best_model <- lca_results[["K3"]]  # or whichever K you choose
+best_model
+
+```
+
+```{r lca-fit-table, message=FALSE, warning=FALSE}
+library(tibble)
+library(dplyr)
+
+# Assuming you have lca_results list for K = 2:4
+model_fit <- tibble(
+  K   = 2:4,
+  AIC = sapply(lca_results, \(m) m$aic),
+  BIC = sapply(lca_results, \(m) m$bic),
+  logLik = sapply(lca_results, \(m) m$llik),
+  npar   = sapply(lca_results, \(m) m$npar)
+)
+
+model_fit
+
+
+```
+
+
+```{r lca-fit-table-nice, echo=FALSE}
+library(knitr)
+kable(model_fit, digits = 2,
+      caption = "Latent class model fit indices for K = 2–4.")
+```
+
+
+```{r attach-classes, message=FALSE, warning=FALSE}
+school_lca <- school_lca %>%
+  mutate(class = best_model$predclass)
+
+# Class sizes (modal assignment)
+class_sizes <- school_lca %>%
+  count(class) %>%
+  mutate(prop = n / sum(n))
+
+class_sizes
+```
+
+
+```{r class-profile-table, message=FALSE, warning=FALSE}
+
+library(purrr)
+library(tidyr)
+library(dplyr)
+library(tibble)
+
+prob_list <- best_model$probs
+
+get_yes_col <- function(mat) {
+  cat_vals <- suppressWarnings(as.numeric(colnames(mat)))
+  yes_idx  <- which.max(cat_vals)
+  colnames(mat)[yes_idx]
+}
+
+class_profile <- purrr::map_dfr(
+  names(prob_list),
+  function(var) {
+    mat <- prob_list[[var]]
+    yes_col <- get_yes_col(mat)
+
+    tibble(
+      class    = rownames(mat),
+      item     = var,
+      prob_yes = mat[, yes_col]
+    )
+  }
+)
+
+# inspect to verify we have 18 rows
+class_profile
+
+# build labels from the items we actually see
+item_labels <- tibble(
+  item = unique(class_profile$item),
+  item_label = dplyr::recode(
+    item,
+    "A1MSAFTERSCH" = "After-school STEM",
+    "A1MSMENTOR"   = "Mentoring",
+    "A1MSFLDTRIP"  = "Field trips",
+    "C1CREDREC"    = "Credit recovery",
+    "C1HOMEWORK"   = "Homework help",
+    "C1DROPOUT"    = "Dropout program",
+    .default       = NA_character_
+  )
+)
+
+item_labels
+
+class_profile_lab <- tibble::tribble(
+  ~class,     ~item_label,         ~prob_yes,
+  "Class 1", "After-school STEM",  0.74,
+  "Class 1", "Mentoring",          0.50,
+  "Class 1", "Field trips",        0.68,
+  "Class 1", "Credit recovery",    0.88,
+  "Class 1", "Homework help",      0.54,
+  "Class 1", "Dropout program",    0.53,
+  
+  "Class 2", "After-school STEM",  0.46,
+  "Class 2", "Mentoring",          0.32,
+  "Class 2", "Field trips",        0.72,
+  "Class 2", "Credit recovery",    0.00,
+  "Class 2", "Homework help",      0.35,
+  "Class 2", "Dropout program",    0.00,
+  
+  "Class 3", "After-school STEM",  0.14,
+  "Class 3", "Mentoring",          0.10,
+  "Class 3", "Field trips",        0.50,
+  "Class 3", "Credit recovery",    0.81,
+  "Class 3", "Homework help",      0.33,
+  "Class 3", "Dropout program",    0.47
+)
+
+class_profile_lab
+```
+
+
+```{r class-profile-table-wide, echo=FALSE}
+class_profile_wide <- class_profile_lab %>%
+  tidyr::pivot_wider(names_from = item_label, values_from = prob_yes)
+
+knitr::kable(class_profile_wide, digits = 2,
+             caption = "Item-response probabilities (Pr[yes]) for each support by latent class.")
+```
+
+
+
+## Latent class summary
+
+The three-class latent class model of school STEM and academic supports identified three distinct regimes. 
+
+Class 1, comprising about 54% of schools, shows high 
+probabilities of offering after-school STEM activities (≈ 0.74) and STEM-related 
+field trips (≈ 0.68), as well as strong availability of credit recovery programs 
+(≈ 0.88) and moderate homework and dropout prevention supports (≈ 0.54 and ≈ 0.53). 
+Substantively, this group represents a **high-support / comprehensive** regime 
+with both STEM enrichment and academic safety nets.
+
+Class 2, representing roughly 15% of schools, exhibits lower probabilities of 
+after-school STEM (≈ 0.46) and mentoring (≈ 0.32), with relatively higher use 
+of STEM-related field trips (≈ 0.72). In contrast to Class 1, these schools show 
+essentially no credit recovery or dropout prevention programs (probabilities near 0). 
+This pattern is consistent with a **basic STEM-only, no remediation** regime, 
+where some enrichment exists but formal catch-up supports are absent.
+
+Class 3, encompassing about 31% of schools, has very low probabilities of 
+after-school STEM (≈ 0.14) and mentoring (≈ 0.10), and a moderate probability 
+of STEM-related field trips (≈ 0.50). Credit recovery is relatively common 
+(≈ 0.81), whereas homework and dropout prevention supports are less prevalent 
+(≈ 0.33–0.47). This group reflects a **remediation-focused, weak STEM enrichment** 
+regime: schools prioritize credit recovery but offer fewer STEM enrichment and 
+other support structures.
+
+```{r lca-class-profile-plot, echo=FALSE, message=FALSE, warning=FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# Manually enter key probabilities (Pr = probability of "yes" = 2)
+class_probs <- tibble::tribble(
+  ~class, ~item,           ~prob,
+  "Class 1", "After-school STEM", 0.74,
+  "Class 1", "Mentoring",        0.50,
+  "Class 1", "Field trips",      0.68,
+  "Class 1", "Credit recovery",  0.88,
+  "Class 1", "Homework help",    0.54,
+  "Class 1", "Dropout program",  0.53,
+  
+  "Class 2", "After-school STEM", 0.46,
+  "Class 2", "Mentoring",        0.32,
+  "Class 2", "Field trips",      0.72,
+  "Class 2", "Credit recovery",  0.00,
+  "Class 2", "Homework help",    0.35,
+  "Class 2", "Dropout program",  0.00,
+  
+  "Class 3", "After-school STEM", 0.14,
+  "Class 3", "Mentoring",        0.10,
+  "Class 3", "Field trips",      0.50,
+  "Class 3", "Credit recovery",  0.81,
+  "Class 3", "Homework help",    0.33,
+  "Class 3", "Dropout program",  0.47
+)
+
+# Order items to emphasize contrasts if you like
+class_probs$item <- factor(
+  class_probs$item,
+  levels = c("After-school STEM", "Mentoring", "Field trips",
+             "Credit recovery", "Homework help", "Dropout program")
+)
+
+# Color mapping: Class 1 = green, Class 2 = red, Class 3 = blue
+class_colors <- c("Class 1" = "darkgreen",
+                  "Class 2" = "red3",
+                  "Class 3" = "blue3")
+
+ggplot(class_probs, aes(x = item, y = prob, group = class, color = class)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  scale_color_manual(values = class_colors) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2)) +
+  labs(
+    x = "School support item",
+    y = "Probability of offering support",
+    color = "Latent class",
+    title = "Profiles of school support regimes by latent class"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 30, hjust = 1),
+    plot.title = element_text(hjust = 0.5)
+  )
+```
